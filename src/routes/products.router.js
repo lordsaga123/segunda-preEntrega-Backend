@@ -6,7 +6,39 @@ const productManager = new ProductManager();
 
 //Rutas:
 //Ver todos los productos
-router.get("/", async(req, res)=>{
+router.get("/", async (req, res) => {
+    try {
+        const { limit = 10, page = 1, sort, query } = req.query;
+
+        const productos = await productManager.getProducts({
+            limit: parseInt(limit),
+            page: parseInt(page),
+            sort,
+            query,
+        });
+
+        res.json({
+            status: 'success',
+            payload: productos,
+            totalPages: productos.totalPages,
+            prevPage: productos.prevPage,
+            nextPage: productos.nextPage,
+            page: productos.page,
+            hasPrevPage: productos.hasPrevPage,
+            hasNextPage: productos.hasNextPage,
+            prevLink: productos.hasPrevPage ? `/api/products?limit=${limit}&page=${productos.prevPage}&sort=${sort}&query=${query}` : null,
+            nextLink: productos.hasNextPage ? `/api/products?limit=${limit}&page=${productos.nextPage}&sort=${sort}&query=${query}` : null,
+        });
+
+    } catch (error) {
+        console.error("Error al obtener productos", error);
+        res.status(500).json({
+            status: 'error',
+            error: "Error interno del servidor"
+        });
+    }
+});
+/*router.get("/", async(req, res)=>{
     try{
         const limit = parseInt(req.query.limit);
         const productos = await productManager.getProducts();
@@ -22,7 +54,7 @@ router.get("/", async(req, res)=>{
             error: "Error interno del servidor"
         });
     }
-})
+})*/
 
 //Método para ver Productos por ID
 router.get("/:pid", async (req, res) => {
